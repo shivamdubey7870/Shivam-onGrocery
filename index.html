@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shivam onGrocery</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.css"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swiper@7/swiper-bundle.min.css"
+    />
+
+    <!-- font awesome cdn link  -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+
+    <!-- custom css file link  -->
+    <link rel="stylesheet" href="css/style.css" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        // Check if login status exists in cookies
+        var loginStatus = getCookie("loginStatus");
+        var userEmail = getCookie("userEmail");
+
+        if (loginStatus) {
+          // Remove the login option and display user email
+          $("#login-btn").remove();
+          $("#logout-btn").show();
+
+          $("#signup-btn").remove();
+          $("#user-email").text(userEmail);
+        } else {
+          // Remove the logout button and user email
+          $("#logout-btn").hide();
+          $("#user-email").remove();
+        }
+
+        // Login form submission
+        $("#loginForm").submit(function (event) {
+          // Prevent the form from submitting normally
+          event.preventDefault();
+
+          // Get the form data
+          var email = $("#email").val();
+          var password = $("#password").val();
+
+          // Perform Ajax request
+          $.ajax({
+            url: "login.php",
+            type: "POST",
+            data: {
+              email: email,
+              password: password,
+            },
+            success: function (response) {
+              // Check the response from the server
+              if (response === "success") {
+                // Set the login status and user email in cookies
+                document.cookie = "loginStatus=true";
+                document.cookie = "userEmail=" + email;
+                window.location.reload();
+              } else {
+                // Show an error message
+                console.log(response);
+                $("#error").text("Invalid email or password.");
+              }
+            },
+            error: function () {
+              // Show an error message
+              $("#error").text("An error occurred during the login process.");
+            },
+          });
+        });
+
+        // Logout button click event
+        $("#logout-btn").click(function () {
+          // Remove the login status and user email cookies
+          document.cookie =
+            "loginStatus=false; expires=Thu, 01 Jan 1980 00:00:00 UTC";
+          document.cookie = "userEmail=; expires=Thu, 01 Jan 1980 00:00:00 UTC";
+          alert("Logout Successfully");
+          window.location.reload();
+        });
+      });
+
+      // Function to get cookie value by name
+      function getCookie(name) {
+        var cookieArr = document.cookie.split(";");
+        for (var i = 0; i < cookieArr.length; i++) {
+          var cookiePair = cookieArr[i].split("=");
+          if (name === cookiePair[0].trim()) {
+            return cookiePair[1];
+          }
+        }
+        return null;
+      }
+    </script>
+
+    <style>
+      .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
+
+      .loading-spinner {
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid #fff;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 2s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .hide {
+        display: none;
+      }
+      .show {
+        display: block;
+      }
+      .OrderBox img {
+        height: 30px;
+      }
+      .OrderBox {
+        font-size: 1rem;
+      }
+      ul{
+        list-style-type: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- header section starts  -->
+
+    <header class="header">
+      <a href="#" class="logo">
+        <i class="fas fa-shopping-basket"></i> onGrocery
+      </a>
+
+      <nav class="navbar">
+        <a href="#home">home</a>
+        <a href="#features">features</a>
+        <a href="#products">products</a>
+        <a href="#categories">categories</a>
+        <a href="#review">review</a>
+        <a href="#blogs">blogs</a>
+      </nav>
+
+      <div class="icons">
+        <div class="fas fa-bars" id="menu-btn"></div>
+        <div class="fas fa-search" id="search-btn"></div>
+        <div class="fas fa-shopping-cart" id="cart-btn"></div>
+        <a href="#" class="fas" id="logout-btn" style="font-size: 24px"
+          >&#xf2f5;</a
+        >
+
+        <div class="fas fa-user" id="login-btn"></div>
+        <div class="fas fa-user-plus" id="signup-btn"></div>
+        <div class="user-email" style="width: auto" id="user-email"></div>
+      </div>
+
+      <form action="" class="search-form">
+        <input type="search" id="search-box" placeholder="search here..." />
+        <label for="search-box" class="fas fa-search"></label>
+      </form>
+
+      <div class="shopping-cart" style="overflow: auto">
+        <!-- <div class="box">
+            <i class="fas fa-trash"></i>
+            <img src="image/cart-img-1.png" alt="">
+            <div class="content">
+                <h3>watermelon</h3>
+                <span class="price">$4.99/-</span>
+                <span class="quantity">qty : 1</span>
+            </div>
+        </div> -->
+        <!-- <div class="box">
+            <i class="fas fa-trash"></i>
+            <img src="image/cart-img-2.png" alt="">
+            <div class="content">
+                <h3>onion</h3>
+                <span class="price">$4.99/-</span>
+                <span class="quantity">qty : 1</span>
+            </div>
+        </div>
+         -->
+        <div class="box">
+          <div class="content">
+            <h3>Cart Empty</h3>
+          </div>
+        </div>
+        <div class="total">total : $00.00/-</div>
+        <!-- <a href="#" class="btn">checkout</a> -->
+      </div>
+      <div class="form-container">
+        <form action="" class="login-form" id="loginForm">
+          <h3>login now</h3>
+          <p id="error" class="text-danger"></p>
+          <input type="email" placeholder="your email" id="email" class="box" />
+          <input
+            type="password"
+            placeholder="your password"
+            id="password"
+            class="box"
+          />
+          <p>forget your password <a href="#">click here</a></p>
+          <p>
+            don't have an account <a id="signup-btn2" href="#">create now</a>
+          </p>
+          <input type="submit" value="login now" class="btn" />
+        </form>
+
+        <form action="" class="signup-form" id="signupForm">
+          <h3>Sign Up Now</h3>
+          <p id="signup-error" class="text-danger"></p>
+          <input
+            type="email"
+            placeholder="your email"
+            id="signup-email"
+            class="box"
+          />
+          <input
+            type="text"
+            placeholder="your name"
+            id="signup-name"
+            class="box"
+          />
+
+          <input
+            type="password"
+            placeholder="your password"
+            id="signup-password"
+            class="box"
+          />
+          <p>Already have an account? <a href="#" id="login-btn2">Log In</a></p>
+          <input type="submit" value="Sign Up Now" class="btn" />
+        </form>
+      </div>
+    </header>
+
+    <!-- header section ends -->
+
+    <!-- home section starts  -->
+
+    <section class="home" id="home">
+      <div class="content">
+        <h3>fresh and <span>organic</span> products for your</h3>
+        <p>
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam
+          libero nostrum veniam facere tempore nisi.
+        </p>
+        <a href="#" class="btn">shop now</a>
+      </div>
+    </section>
+
+    <!-- home section ends -->
+
+    <!-- features section starts  -->
+
+    <section class="features" id="features">
+      <h1 class="heading">our <span>features</span></h1>
+
+      <div class="box-container">
+        <div class="box">
+          <img src="image/feature-img-1.png" alt="" />
+          <h3>fresh and organic</h3>
+          <p>
+            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Deserunt,
+            earum!
+          </p>
+          <a href="#" class="btn">read more</a>
+        </div>
+
+        <div class="box">
+          <img src="image/feature-img-2.png" alt="" />
+          <h3>free delivery</h3>
+          <p>
+            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Deserunt,
+            earum!
+          </p>
+          <a href="#" class="btn">read more</a>
+        </div>
+
+        <div class="box">
+          <img src="image/feature-img-3.png" alt="" />
+          <h3>easy payments</h3>
+          <p>
+            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Deserunt,
+            earum!
+          </p>
+          <a href="#" class="btn">read more</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- features section ends -->
+
+    <!-- products section starts  -->
+
+    <section class="products" id="products">
+      <h1 class="heading">our <span>products</span></h1>
+
+      <div class="swiper product-slider">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide box">
+            <img src="image/product-1.png" alt="" />
+            <h3>fresh orange</h3>
+            <div class="price">$4.99/-</div>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <a href="#" class="btn add-to-cart-btn" data-product-id="1"
+              >add to cart</a
+            >
+          </div>
+
+          <div class="swiper-slide box">
+            <img src="image/product-2.png" alt="" />
+            <h3>fresh onion</h3>
+            <div class="price">$7.99/-</div>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <a href="#" class="btn add-to-cart-btn" data-product-id="2"
+              >add to cart</a
+            >
+          </div>
+
+          <div class="swiper-slide box">
+            <img src="image/product-3.png" alt="" />
+            <h3>fresh meat</h3>
+            <div class="price">$19.99/-</div>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <a href="#" class="btn add-to-cart-btn" data-product-id="3"
+              >add to cart</a
+            >
+          </div>
+
+          <div class="swiper-slide box">
+            <img src="image/product-4.png" alt="" />
+            <h3>fresh cabbage</h3>
+            <div class="price">$11.99/-</div>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <a class="btn add-to-cart-btn" data-product-id="4">add to cart</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="swiper product-slider">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide box">
+            <img src="image/product-5.png" alt="" />
+            <h3>fresh potato</h3>
+            <div class="price">$10.99/-</div>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <a href="#" class="btn add-to-cart-btn" data-product-id="5"
+              >add to cart</a
+            >
+          </div>
+
+          <div class="swiper-slide box">
+            <img src="image/product-6.png" alt="" />
+            <h3>fresh avocado</h3>
+            <div class="price">$14.99/-</div>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <a href="#" class="btn add-to-cart-btn" data-product-id="5"
+              >add to cart</a
+            >
+          </div>
+
+          <div class="swiper-slide box">
+            <img src="image/product-7.png" alt="" />
+            <h3>fresh carrot</h3>
+            <div class="price">$10.99/-</div>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <a href="#" class="btn add-to-cart-btn" data-product-id="6"
+              >add to cart</a
+            >
+          </div>
+
+          <div class="swiper-slide box">
+            <img src="image/product-8.png" alt="" />
+            <h3>green lemon</h3>
+            <div class="price">$1.99/-</div>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <a href="#" class="btn add-to-cart-btn" data-product-id="7"
+              >add to cart</a
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- products section ends -->
+
+    <!-- categories section starts  -->
+
+    <section class="categories" id="categories">
+      <h1 class="heading">product <span>categories</span></h1>
+
+      <div class="box-container">
+        <div class="box">
+          <img src="image/cat-1.png" alt="" />
+          <h3>vegitables</h3>
+          <p>upto 45% off</p>
+          <a href="#" class="btn">shop now</a>
+        </div>
+
+        <div class="box">
+          <img src="image/cat-2.png" alt="" />
+          <h3>fresh fruits</h3>
+          <p>upto 45% off</p>
+          <a href="#" class="btn">shop now</a>
+        </div>
+
+        <div class="box">
+          <img src="image/cat-3.png" alt="" />
+          <h3>dairy products</h3>
+          <p>upto 45% off</p>
+          <a href="#" class="btn">shop now</a>
+        </div>
+
+        <div class="box">
+          <img src="image/cat-4.png" alt="" />
+          <h3>fresh meat</h3>
+          <p>upto 45% off</p>
+          <a href="#" class="btn">shop now</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- categories section ends -->
+
+    <!-- review section starts  -->
+
+    <section class="review" id="review">
+      <h1 class="heading">customer's <span>review</span></h1>
+
+      <div class="swiper review-slider">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide box">
+            <img src="image/pic-1.png" alt="" />
+            <p>
+              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Unde
+              sunt fugiat dolore ipsum id est maxime ad tempore quasi tenetur.
+            </p>
+            <h3>john deo</h3>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+          </div>
+
+          <div class="swiper-slide box">
+            <img src="image/pic-2.png" alt="" />
+            <p>
+              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Unde
+              sunt fugiat dolore ipsum id est maxime ad tempore quasi tenetur.
+            </p>
+            <h3>john deo</h3>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+          </div>
+
+          <div class="swiper-slide box">
+            <img src="image/pic-3.png" alt="" />
+            <p>
+              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Unde
+              sunt fugiat dolore ipsum id est maxime ad tempore quasi tenetur.
+            </p>
+            <h3>john deo</h3>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+          </div>
+
+          <div class="swiper-slide box">
+            <img src="image/pic-4.png" alt="" />
+            <p>
+              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Unde
+              sunt fugiat dolore ipsum id est maxime ad tempore quasi tenetur.
+            </p>
+            <h3>john deo</h3>
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- review section ends -->
+
+    <!-- blogs section starts  -->
+
+    <section class="blogs" id="blogs">
+      <h1 class="heading">our <span>blogs</span></h1>
+
+      <div class="box-container">
+        <div class="box">
+          <img src="image/blog-1.jpg" alt="" />
+          <div class="content">
+            <div class="icons">
+              <a href="#"> <i class="fas fa-user"></i> by user </a>
+              <a href="#"> <i class="fas fa-calendar"></i> 1st may, 2021 </a>
+            </div>
+            <h3>fresh and organic vegitables and fruits</h3>
+            <p>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam,
+              expedita.
+            </p>
+            <a href="#" class="btn">read more</a>
+          </div>
+        </div>
+
+        <div class="box">
+          <img src="image/blog-2.jpg" alt="" />
+          <div class="content">
+            <div class="icons">
+              <a href="#"> <i class="fas fa-user"></i> by user </a>
+              <a href="#"> <i class="fas fa-calendar"></i> 1st may, 2021 </a>
+            </div>
+            <h3>fresh and organic vegitables and fruits</h3>
+            <p>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam,
+              expedita.
+            </p>
+            <a href="#" class="btn">read more</a>
+          </div>
+        </div>
+
+        <div class="box">
+          <img src="image/blog-3.jpg" alt="" />
+          <div class="content">
+            <div class="icons">
+              <a href="#"> <i class="fas fa-user"></i> by user </a>
+              <a href="#"> <i class="fas fa-calendar"></i> 1st may, 2021 </a>
+            </div>
+            <h3>fresh and organic vegitables and fruits</h3>
+            <p>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam,
+              expedita.
+            </p>
+            <a href="#" class="btn">read more</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div
+      id="orderHistoryDialog"
+      style="width: auto; height: 80vh; overflow: auto"
+      class="dialog"
+    >
+      <span class="closeBtn" onclick="closeDialog()">&times;</span>
+      <h2 style="text-align: center">Order History</h2>
+      <ul id="orderList">
+        <!-- The order details will be populated here dynamically using JavaScript -->
+      </ul>
+    </div>
+
+    <!-- blogs section ends -->
+
+    <!-- footer section starts  -->
+
+    <section class="footer">
+      <div class="box-container">
+        <div class="box">
+          <h3>OnGrocery <i class="fas fa-shopping-basket"></i></h3>
+          <p>
+            Lorem ipsum dolor, sit amet consectetur adipisicing elit. Aliquam,
+            saepe.
+          </p>
+          <div class="share">
+            <a href="#" class="fab fa-facebook-f"></a>
+            <a href="#" class="fab fa-twitter"></a>
+            <a href="#" class="fab fa-instagram"></a>
+            <a href="#" class="fab fa-linkedin"></a>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>contact info</h3>
+          <a href="#" class="links">
+            <i class="fas fa-phone"></i> +123-456-7890
+          </a>
+          <a href="#" class="links">
+            <i class="fas fa-phone"></i> +111-222-3333
+          </a>
+          <a href="#" class="links">
+            <i class="fas fa-envelope"></i> officialrajonline@gmail.com
+          </a>
+          <a href="#" class="links">
+            <i class="fas fa-map-marker-alt"></i> mumbai, india - 400104
+          </a>
+        </div>
+
+        <div class="box">
+          <h3>quick links</h3>
+          <a href="#" class="links">
+            <i class="fas fa-arrow-right"></i> home
+          </a>
+          <a href="#" class="links">
+            <i class="fas fa-arrow-right"></i> features
+          </a>
+          <a href="#" class="links">
+            <i class="fas fa-arrow-right"></i> products
+          </a>
+          <a href="#" class="links">
+            <i class="fas fa-arrow-right"></i> categories
+          </a>
+          <a href="#" class="links">
+            <i class="fas fa-arrow-right"></i> review
+          </a>
+          <a href="#" class="links">
+            <i class="fas fa-arrow-right"></i> blogs
+          </a>
+        </div>
+
+        <div class="box">
+          <h3>newsletter</h3>
+          <p>subscribe for latest updates</p>
+          <input type="email" placeholder="your email" class="email" />
+          <input type="submit" value="subscribe" class="btn" />
+          <img src="image/payment.png" class="payment-img" alt="" />
+        </div>
+      </div>
+
+      <div class="credit">
+        Developed by <span> MR. Shivam Dubey<span> | all rights reserved
+      </div>
+    </section>
+
+    <div class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <p>Loading...</p>
+    </div>
+
+    <!-- footer section ends -->
+
+    <script src="https://unpkg.com/swiper@7/swiper-bundle.min.js"></script>
+
+    <!-- custom js file link  -->
+    <script src="js/script.js"></script>
+
+    <!-- Add the SweetAlert library (dialog box) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.18/dist/sweetalert2.min.js"></script>
+
+    <script>
+      $(document).ready(function () {
+        // Sample data for user order history
+        var userOrderHistory = [];
+        // Array to store items in the cart
+        var cartItems = [];
+        var totalAmount = 0;
+
+        function emptyCart() {
+          // Clear the cartItems array to empty the cart
+          cartItems = [];
+          // Update the cart UI after emptying the cart
+          updateCartUI();
+        }
+
+        // Function to update the cart UI
+        function updateCartUI() {
+          var cartTotalElement = $("#cart-total");
+          var cartTotal = 0;
+          console.log(cartItems);
+
+          // Create HTML to display items in the cart
+          var cartHTML = cartItems
+            .map(function (item) {
+              cartTotal += parseFloat(
+                item.productTotalPrice
+              );
+              return `
+                    <div class="box">
+                        <i class="fas fa-trash"></i>
+                        <img src="${item.image}" alt="">
+                        <div class="content">
+                            <h3>${item.name}</h3>
+                            <span class="price">$${item.price}</span>
+                            <span class="quantity">qty : ${item.quantity}</span>
+                             <br><span class="total_price">Total amount : $${item.productTotalPrice}</span>
+                        </div>
+                    </div>
+                `;
+            })
+            .join("");
+
+          // Display the cart items and total price
+          $(".shopping-cart").html(`
+                ${cartHTML}
+                <div class="total">total: $${cartTotal.toFixed(2)}/-</div>
+                <a href="#" class="btn checkout-btn">checkout</a>
+            `);
+          totalAmount = cartTotal.toFixed(2);
+        }
+
+        // Add event listener to "Add to Cart" buttons
+        $(".add-to-cart-btn").click(function (event) {
+          // Get product details from the clicked button's parent container
+          var productCard = $(this).closest(".box");
+          var productName = productCard.find("h3").text();
+          var productPrice = productCard.find(".price").text();
+          // var productTotalPrice = productCard.find(".price").text();
+          var productImage = productCard.find("img").attr("src");
+
+         // Check if the product already exists in the cartItems array
+  var existingCartItem = cartItems.find(function (cartItem) {
+    return cartItem.name === productName;
+  });
+
+  if (existingCartItem) {
+    // If the product exists in the cart, increment its quantity
+    existingCartItem.quantity += 1;
+    Nquantity = existingCartItem.quantity;
+    nprice = existingCartItem.price.replace("$", "").replace("/-", "");
+    existingCartItem.productTotalPrice = nprice*Nquantity;
+  } else {
+    // If the product doesn't exist in the cart, add it with an initial quantity of 1
+    var product = {
+      image: productImage,
+      name: productName,
+      price: productPrice.replace("$", "").replace("/-", ""),
+      quantity: 1,
+      productTotalPrice : productPrice.replace("$", "").replace("/-", ""),
+    };
+
+    cartItems.push(product);
+  }
+
+          // Update the cart UI
+          updateCartUI();
+        });
+
+        // Function to remove a cart item by its index in the cartItems array
+        function removeCartItem(index) {
+          cartItems.splice(index, 1);
+          // Update the cart UI after removing the item
+          updateCartUI();
+        }
+
+        // Event listener for the delete button
+        $(document).on("click", ".fa-trash", function () {
+          // Get the index of the cart item to remove
+          var index = $(this).closest(".box").index();
+          // Call the removeCartItem function with the index to remove the item from the cart
+          removeCartItem(index);
+        });
+
+        function sendCartToBackend(email, cartItems) {
+          $(".loading-overlay").show();
+
+          $.ajax({
+            url: "uploadToCart.php", // Replace "backend_page.php" with the actual URL of your backend page
+            type: "POST",
+            data: {
+              email: email,
+              cartItems: cartItems,
+              totalAmount: totalAmount,
+            },
+            success: function (response) {
+              $(".loading-overlay").hide();
+
+              // Show a dialog box with the success message
+              Swal.fire({
+                icon: "success",
+                title: "Checkout Successful!",
+                text: "Thank you for your order. Your cart has been successfully checked out.",
+              }).then((result) => {
+                // Empty the cart after showing the success message
+                emptyCart();
+              });
+            },
+            error: function () {
+              $(".loading-overlay").hide();
+              console.log("Error sending data to backend");
+            },
+          });
+        }
+
+        // Add event listener to the "checkout" button
+        $(document).on("click", ".btn.checkout-btn", function () {
+          // Get the user email from the user-email element
+          var userEmail = $("#user-email").text().trim();
+
+          // Check if the user is logged in
+          if (userEmail === "") {
+            // User is not logged in, show alert to ask for login
+            alert("Please log in to proceed to checkout.");
+          } else {
+            // User is logged in, proceed with the checkout process
+            sendCartToBackend(userEmail, cartItems);
+          }
+        });
+        // Signup form submission
+        $("#signupForm").submit(function (event) {
+          event.preventDefault();
+
+          // Get the form data
+          var email = $("#signup-email").val();
+          var name = $("#signup-name").val();
+          var password = $("#signup-password").val();
+
+          // Perform Ajax request to handle signup on the backend
+          $.ajax({
+            url: "signup.php", // Replace "signup.php" with the actual URL of your backend signup handler
+            type: "POST",
+            data: {
+              email: email,
+              name: name,
+              password: password,
+            },
+            success: function (response) {
+              // Check the response from the server
+              if (response === "success") {
+                // Show a success message in the dialog box
+                Swal.fire({
+                  icon: "success",
+                  title: "Signup Successful!",
+                  text: "Thank you for signing up. You can now log in with your credentials.",
+                }).then((result) => {
+                  // After showing the message, switch back to the login form
+                  showLoginForm();
+                });
+              } else {
+                // Show an error message
+                console.log(response);
+                $("#signup-error").text(response);
+              }
+            },
+            error: function () {
+              // Show an error message
+              $("#signup-error").text(
+                "An error occurred during the signup process."
+              );
+            },
+          });
+        });
+
+        // Click event listener for the user-email element
+        $("#user-email").click(function () {
+          // Get the user email from the user-email element
+          var userEmail = $(this).text().trim();
+
+          // Check if the user is logged in (email is not empty)
+          if (userEmail !== "") {
+            // Perform Ajax request to get the user's cart items using their email
+            $.ajax({
+              url: "getorderHistory.php", // Replace "getCartItems.php" with the actual URL of your backend to fetch cart items
+              type: "GET",
+              data: {
+                email: userEmail,
+              },
+              success: function (response) {
+                console.log(response);
+
+                $("#Orderhistory").addClass("active");
+
+                // Check if the response contains valid cart items
+                if (response && response.length > 0) {
+                  userOrderHistory = JSON.parse(response);
+                  openDialog();
+                  // Scroll to the cart section to show the fetched cart items
+                  $("html, body").animate(
+                    {
+                      scrollTop: $("#products").offset().top,
+                    },
+                    800
+                  );
+                } else {
+                  // Show a message that the cart is empty
+                  Swal.fire({
+                    icon: "info",
+                    title: "Empty Cart",
+                    text: "Your cart is currently empty.",
+                  });
+                }
+              },
+              error: function () {
+                // Show an error message if there was an issue fetching the cart items
+                Swal.fire({
+                  icon: "error",
+                  title: "Error",
+                  text: "Failed to fetch cart items. Please try again later.",
+                });
+              },
+            });
+          }
+        });
+
+        // Function to open the dialog and populate order history
+        function openDialog() {
+          var dialog = document.getElementById("orderHistoryDialog");
+          var orderList = document.getElementById("orderList");
+
+          // Clear any previous order history
+          orderList.innerHTML = "";
+
+          // Populate the order history
+          for (var i = 0; i < userOrderHistory.length; i++) {
+            var order = userOrderHistory[i];
+
+            var listItem = document.createElement("li");
+            listItem.classList.add("box");
+            listItem.classList.add("OrderBox");
+            listItem.innerHTML = `<h5>${order["dateTime"]}</h5>`;
+
+            var orderDetailsList = document.createElement("ul");
+
+            if (order["order_details"]) {
+              for (var j = 0; j < order["order_details"].length; j++) {
+                var orderDetail = order["order_details"][j];
+
+                var detailListItem = document.createElement("li");
+
+                var itemHtml = `
+        <img src="${orderDetail["image"]}" alt="${orderDetail["name"]}">
+        <strong>${orderDetail["name"]}</strong>
+        Price: ${orderDetail["price"]}
+        Quantity: ${orderDetail["quantity"]}
+      `;
+
+                detailListItem.innerHTML = itemHtml;
+
+                orderDetailsList.appendChild(detailListItem);
+              }
+            } else {
+              var noDetailsMessage = document.createElement("li");
+              noDetailsMessage.textContent = "No order details available.";
+              orderDetailsList.appendChild(noDetailsMessage);
+            }
+
+            listItem.appendChild(orderDetailsList);
+            listItem.innerHTML += `<h5>Total Amount: ${order["orderAmount"]}</h5><hr>`;
+            orderList.appendChild(listItem);
+          }
+
+          dialog.style.display = "block";
+        }
+
+        // Attach event listener to the "Show Order History" button
+        // document
+        //   .getElementById("user-email")
+        //   .addEventListener("click", openDialog);
+      });
+      // Function to close the dialog
+      function closeDialog() {
+        const dialog = document.getElementById("orderHistoryDialog");
+        dialog.style.display = "none";
+      }
+
+      function showLoginForm() {
+        $("#signupForm").removeClass("active");
+        $("#loginForm").addClass("active");
+      }
+    </script>
+  </body>
+</html>
